@@ -110,8 +110,12 @@
 
             <div class="card product-card shadow-sm">
 
-                <img src="{{ $product->image ? asset('storage/'.$product->image) : 'https://via.placeholder.com/400x300' }}"
-                     class="card-img-top product-img">
+                <img
+    src="{{ asset('storage/' . $product->image) }}"
+    alt="{{ $product->name }}"
+    class="w-full h-56 object-cover rounded-t-lg"
+    onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'"
+>
 
                 <div class="card-body p-2">
 
