@@ -1,14 +1,15 @@
-```blade
 <x-guest-layout>
 
-<div class="text-center py-10">
+<div class="flex flex-col items-center justify-center min-h-[60vh]">
 
-    <h1 class="text-2xl font-bold mb-4">
-        Verifying your email...
+    <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-gray-900"></div>
+
+    <h1 class="mt-6 text-2xl font-bold">
+        Waiting for Email Verification
     </h1>
 
-    <p class="text-gray-600">
-        Please wait...
+    <p class="mt-2 text-gray-600">
+        Verify your email in Gmail...
     </p>
 
 </div>
@@ -19,11 +20,10 @@ import { initializeApp }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
-
     getAuth,
     onAuthStateChanged
-
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
 
@@ -45,108 +45,90 @@ const app = initializeApp(firebaseConfig);
 
 const auth = getAuth(app);
 
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, (user) => {
 
     if (!user) {
-
-        alert("No Firebase user found.");
 
         window.location.href = "/register";
 
         return;
     }
 
-    // Reload user to refresh verification state
-    await user.reload();
+    const checker = setInterval(async () => {
 
-    if (!user.emailVerified) {
+        await user.reload();
 
-        alert("Please verify your email first.");
+        if (user.emailVerified) {
 
-        return;
-    }
+            clearInterval(checker);
 
-    try {
+            try {
 
-        const response = await fetch('/firebase-register', {
+                const response =
+                    await fetch(
+                        '/firebase-register',
+                        {
+                            method: 'POST',
 
-            method: 'POST',
+                            headers: {
 
-            headers: {
+                                'Content-Type':
+                                    'application/json',
 
-                'Content-Type': 'application/json',
+                                'Accept':
+                                    'application/json',
 
-                'Accept': 'application/json',
+                                'X-CSRF-TOKEN':
+                                    '{{ csrf_token() }}'
+                            },
 
-                'X-CSRF-TOKEN':
-                    '{{ csrf_token() }}'
+                            body: JSON.stringify({
 
-            },
+                                name:
+                                    localStorage.getItem('name'),
 
-            body: JSON.stringify({
+                                email:
+                                    localStorage.getItem('email'),
 
-                name:
-                    localStorage.getItem('name'),
+                                contact_number:
+                                    localStorage.getItem('contact_number'),
 
-                email:
-                    localStorage.getItem('email'),
+                                address:
+                                    localStorage.getItem('address'),
 
-                contact_number:
-                    localStorage.getItem('contact_number'),
+                                facebook_link:
+                                    localStorage.getItem('facebook_link'),
 
-                address:
-                    localStorage.getItem('address'),
+                                password:
+                                    localStorage.getItem('password')
 
-                facebook_link:
-                    localStorage.getItem('facebook_link'),
+                            })
+                        }
+                    );
 
-                password:
-                    localStorage.getItem('password')
+                const data =
+                    await response.json();
 
-            })
+                if (data.success) {
 
-        });
+                    localStorage.clear();
 
-        const data = await response.json();
+                    window.location.href =
+                        "/login";
+                }
 
-        console.log(data);
+            } catch (error) {
 
-        if (data.success) {
+                console.log(error);
 
-            // Clear temp storage
-            localStorage.removeItem('name');
+                alert(
+                    "Failed to create account."
+                );
 
-            localStorage.removeItem('email');
-
-            localStorage.removeItem('contact_number');
-
-            localStorage.removeItem('address');
-
-            localStorage.removeItem('facebook_link');
-
-            localStorage.removeItem('password');
-
-            alert(
-                'Account created successfully!'
-            );
-
-            window.location.href = '/login';
-
-        } else {
-
-            alert('Registration failed.');
-
+            }
         }
 
-    } catch (error) {
-
-        console.log(error);
-
-        alert(
-            'Something went wrong while creating account.'
-        );
-
-    }
+    }, 1000);
 
 });
 

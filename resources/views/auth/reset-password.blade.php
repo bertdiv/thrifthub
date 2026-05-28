@@ -1,63 +1,99 @@
 <x-guest-layout>
-    <form method="POST" action="{{ route('password.store') }}">
-        @csrf
 
-        <!-- Password Reset Token -->
-        <input type="hidden" name="token" value="{{ $request->route('token') }}">
+<div class="mb-4 text-sm text-gray-600">
+    Forgot your password?
+    Enter your email and Firebase will send
+    a reset link.
+</div>
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email"
-                :value="old('email', $request->email)" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+<form id="resetForm">
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+    <div>
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                type="password" name="password" required autocomplete="new-password" />
+        <x-input-label
+            for="email"
+            :value="__('Email')" />
 
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
+        <x-text-input
+            id="email"
+            class="block mt-1 w-full"
+            type="email"
+            name="email"
+            required />
 
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+    </div>
 
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                type="password" name="password_confirmation" required autocomplete="new-password" />
+    <div class="flex items-center justify-end mt-4">
 
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
+        <x-primary-button>
 
-        <!-- Show Password Checkbox -->
-        <div class="mt-4 flex items-center">
-            <input type="checkbox" id="showPassword" onclick="togglePasswordFields()"
-                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+            Send Reset Link
 
-            <label for="showPassword" class="ms-2 text-sm text-gray-600">
-                Show Password
-            </label>
-        </div>
+        </x-primary-button>
 
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
-                {{ __('Reset Password') }}
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
-<script>
-function togglePasswordFields() {
-    const password = document.getElementById('password');
-    const confirm = document.getElementById('password_confirmation');
+    </div>
 
-    const type = password.type === 'password' ? 'text' : 'password';
+</form>
 
-    password.type = type;
-    confirm.type = type;
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+    getAuth,
+    sendPasswordResetEmail
 }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+
+    apiKey: "AIzaSyC0NVxBhA7Lxq6ZgZNuRkLmhIZEQj7UzG0",
+
+    authDomain: "thrifthub-142be.firebaseapp.com",
+
+    projectId: "thrifthub-142be",
+
+    storageBucket: "thrifthub-142be.firebasestorage.app",
+
+    messagingSenderId: "32277704559",
+
+    appId: "1:32277704559:web:b704953c491d72a3cd429a"
+
+};
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+
+document.getElementById('resetForm')
+.addEventListener('submit', async (e) => {
+
+    e.preventDefault();
+
+    const email =
+        document.getElementById('email').value;
+
+    try {
+
+        await sendPasswordResetEmail(
+            auth,
+            email
+        );
+
+        alert(
+            'Password reset email sent!'
+        );
+
+    } catch (error) {
+
+        alert(error.message);
+
+    }
+
+});
+
 </script>
+
+</x-guest-layout>
+```
