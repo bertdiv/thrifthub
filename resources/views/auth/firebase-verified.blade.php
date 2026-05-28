@@ -1,20 +1,22 @@
+```blade
 <x-guest-layout>
 
-    <div class="text-center">
+<div class="text-center py-10">
 
-        <h1 class="text-2xl font-bold mb-4">
-            Verifying Email...
-        </h1>
+    <h1 class="text-2xl font-bold mb-4">
+        Verifying your email...
+    </h1>
 
-        <p>
-            Please wait...
-        </p>
+    <p class="text-gray-600">
+        Please wait...
+    </p>
 
-    </div>
+</div>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
 
@@ -25,17 +27,17 @@ import {
 
 const firebaseConfig = {
 
-    apiKey: "YOUR_API_KEY",
+    apiKey: "AIzaSyC0NVxBhA7Lxq6ZgZNuRkLmhIZEQj7UzG0",
 
-    authDomain: "YOUR_AUTH_DOMAIN",
+    authDomain: "thrifthub-142be.firebaseapp.com",
 
-    projectId: "YOUR_PROJECT_ID",
+    projectId: "thrifthub-142be",
 
-    storageBucket: "YOUR_STORAGE_BUCKET",
+    storageBucket: "thrifthub-142be.firebasestorage.app",
 
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    messagingSenderId: "32277704559",
 
-    appId: "YOUR_APP_ID"
+    appId: "1:32277704559:web:b704953c491d72a3cd429a"
 
 };
 
@@ -45,58 +47,104 @@ const auth = getAuth(app);
 
 onAuthStateChanged(auth, async (user) => {
 
-    if (user) {
+    if (!user) {
 
-        await user.reload();
+        alert("No Firebase user found.");
 
-        if (user.emailVerified) {
+        window.location.href = "/register";
 
-            // Create Laravel seller account
-            const response = await fetch('/firebase-register', {
+        return;
+    }
 
-                method: 'POST',
+    // Reload user to refresh verification state
+    await user.reload();
 
-                headers: {
+    if (!user.emailVerified) {
 
-                    'Content-Type': 'application/json',
+        alert("Please verify your email first.");
 
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        return;
+    }
 
-                },
+    try {
 
-                body: JSON.stringify({
+        const response = await fetch('/firebase-register', {
 
-                    name: localStorage.getItem('name'),
+            method: 'POST',
 
-                    email: localStorage.getItem('email'),
+            headers: {
 
-                    contact_number: localStorage.getItem('contact_number'),
+                'Content-Type': 'application/json',
 
-                    address: localStorage.getItem('address'),
+                'Accept': 'application/json',
 
-                    facebook_link: localStorage.getItem('facebook_link'),
+                'X-CSRF-TOKEN':
+                    '{{ csrf_token() }}'
 
-                    password: localStorage.getItem('password'),
+            },
 
-                })
+            body: JSON.stringify({
 
-            });
+                name:
+                    localStorage.getItem('name'),
 
-            const data = await response.json();
+                email:
+                    localStorage.getItem('email'),
 
-            if (data.success) {
+                contact_number:
+                    localStorage.getItem('contact_number'),
 
-                alert('Account created successfully!');
+                address:
+                    localStorage.getItem('address'),
 
-                window.location.href = '/login';
+                facebook_link:
+                    localStorage.getItem('facebook_link'),
 
-            }
+                password:
+                    localStorage.getItem('password')
+
+            })
+
+        });
+
+        const data = await response.json();
+
+        console.log(data);
+
+        if (data.success) {
+
+            // Clear temp storage
+            localStorage.removeItem('name');
+
+            localStorage.removeItem('email');
+
+            localStorage.removeItem('contact_number');
+
+            localStorage.removeItem('address');
+
+            localStorage.removeItem('facebook_link');
+
+            localStorage.removeItem('password');
+
+            alert(
+                'Account created successfully!'
+            );
+
+            window.location.href = '/login';
 
         } else {
 
-            alert('Email not verified yet.');
+            alert('Registration failed.');
 
         }
+
+    } catch (error) {
+
+        console.log(error);
+
+        alert(
+            'Something went wrong while creating account.'
+        );
 
     }
 
@@ -105,3 +153,4 @@ onAuthStateChanged(auth, async (user) => {
 </script>
 
 </x-guest-layout>
+```
