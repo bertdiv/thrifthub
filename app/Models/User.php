@@ -7,7 +7,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\SellerProfile;
 
-class User extends Authenticatable
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
@@ -51,7 +53,7 @@ class User extends Authenticatable
     }
 
     // Optional extended profile
-    public function sellerProfile()
+    public function sellerProfile() 
     {
         return $this->hasOne(SellerProfile::class);
     }

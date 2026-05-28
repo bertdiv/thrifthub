@@ -21,18 +21,21 @@ Route::get('/', function () {
 |--------------------------------------------------------------------------
 | OTP VERIFICATION
 |--------------------------------------------------------------------------
-*/
-Route::get('/verify-otp', [OtpController::class, 'show'])
-    ->name('otp.verify.form');
-
-Route::post('/verify-otp', [OtpController::class, 'verify'])
-    ->name('otp.verify');
 
 /*
 |--------------------------------------------------------------------------
 | DASHBOARD REDIRECT
 |--------------------------------------------------------------------------
 */
+
+Route::middleware(['auth', 'verified'])->group(function () {
+
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    });
+
+});
+
 Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard', function () {

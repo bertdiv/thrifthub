@@ -3,16 +3,19 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Mail\SendOtpMail;
+use App\Models\User;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
     /**
-     * Display the registration view.
+     * Display registration form.
      */
     public function create(): View
     {
@@ -20,9 +23,9 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * Handle registration request.
+     * Handle registration.
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $request->validate([
 
@@ -32,7 +35,7 @@ class RegisteredUserController extends Controller
 
             'contact_number' => ['required', 'string', 'max:20'],
 
-            'address' => ['nullable', 'string', 'max:255'],
+            'address' => ['required', 'string', 'max:255'],
 
             'facebook_link' => ['nullable', 'url'],
 
@@ -42,49 +45,36 @@ class RegisteredUserController extends Controller
 
         ]);
 
-        // Generate OTP
-        $otp = rand(100000, 999999);
+        // Create user immediately
+        $user = User::create([
 
-        // Store temporary registration data
-        session([
-            'register_data' => [
+            'name' => $request->name,
 
-                'name' => $request->name,
+            'email' => $request->email,
 
-                'email' => $request->email,
+            'contact_number' => $request->contact_number,
 
-                'contact_number' => $request->contact_number,
+            'address' => $request->address,
 
-                'address' => $request->address,
+            'facebook_link' => $request->facebook_link,
 
-                'facebook_link' => $request->facebook_link,
+            'messenger_link' => $request->messenger_link,
 
-                'messenger_link' => $request->messenger_link,
+            'password' => Hash::make($request->password),
 
-                'password' => $request->password,
+            'role' => 'seller',
 
-                'role' => 'seller',
+            'is_verified' => false,
 
-                'otp_code' => $otp,
-
-                'otp_expires_at' => now()->addMinutes(10),
-
-            ]
         ]);
 
-        // Send OTP Email
-        try {
+        // Send Laravel email verification
+        event(new Registered($user));
 
-            Mail::to($request->email)
-                ->send(new SendOtpMail($otp));
+        // Auto login
+        Auth::login($user);
 
-        } catch (\Exception $e) {
-
-            return back()->withErrors([
-                'email' => $e->getMessage()
-            ]);
-        }
-
-        return redirect()->route('otp.verify.form');
+        // Redirect to verification notice
+        return redirect()->route('verification.notice');
     }
 }
