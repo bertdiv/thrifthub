@@ -1,6 +1,6 @@
 <x-guest-layout>
 
-<form method="POST" action="{{ route('register') }}" class="px-2 sm:px-0">
+<form id="registerForm" class="px-2 sm:px-0">
     @csrf
 
     <!-- Hidden Role -->
@@ -138,9 +138,10 @@
 
             <!-- Register centered text -->
             <div class="w sm:w-auto flex justify-center">
-                <x-primary-button class="w-full sm:w-auto">
-                    {{ __('Register') }}
-                </x-primary-button>
+                <button type="submit"
+    class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 w-full sm:w-auto justify-center">
+    Register
+</button>
             </div>
 
         </div>
@@ -149,17 +150,174 @@
 
 </form>
 
-<!-- Script -->
-<script>
-function togglePasswords() {
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+
+    getAuth,
+    createUserWithEmailAndPassword,
+    sendEmailVerification
+
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+
+    apiKey: "AIzaSyC0NVxBhA7Lxq6ZgZNuRkLmhIZEQj7UzG0",
+
+    authDomain: "thrifthub-142be.firebaseapp.com",
+
+    projectId: "thrifthub-142be",
+
+    storageBucket: "thrifthub-142be.firebasestorage.app",
+
+    messagingSenderId: "32277704559",
+
+    appId: "1:32277704559:web:b704953c491d72a3cd429a"
+
+};
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+
+window.togglePasswords = function () {
+
     const password = document.getElementById('password');
+
     const confirm = document.getElementById('password_confirmation');
 
-    const type = password.type === 'password' ? 'text' : 'password';
+    const type = password.type === 'password'
+        ? 'text'
+        : 'password';
 
     password.type = type;
+
     confirm.type = type;
-}
+};
+
+document.querySelector("form").addEventListener("submit", async function (e) {
+
+    e.preventDefault();
+
+    const form = this;
+
+    const email = document.getElementById('email').value;
+
+    const password = document.getElementById('password').value;
+
+    try {
+
+        const userCredential =
+            await createUserWithEmailAndPassword(
+                auth,
+                email,
+                password
+            );
+
+        await sendEmailVerification(userCredential.user);
+
+        alert(
+            "Verification email sent. Please verify your email before continuing."
+        );
+
+    } catch (error) {
+
+        alert(error.message);
+
+        console.log(error);
+
+    }
+
+});
+
 </script>
 
+
+
 </x-guest-layout>
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+
+    getAuth,
+    createUserWithEmailAndPassword,
+    sendEmailVerification
+
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+
+    apiKey: "YOUR_API_KEY",
+
+    authDomain: "YOUR_AUTH_DOMAIN",
+
+    projectId: "YOUR_PROJECT_ID",
+
+    storageBucket: "YOUR_STORAGE_BUCKET",
+
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+
+    appId: "YOUR_APP_ID"
+
+};
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+
+window.togglePasswords = function () {
+
+    const password = document.getElementById('password');
+
+    const confirm = document.getElementById('password_confirmation');
+
+    const type = password.type === 'password'
+        ? 'text'
+        : 'password';
+
+    password.type = type;
+
+    confirm.type = type;
+};
+
+document.getElementById("registerForm")
+.addEventListener("submit", async function (e) {
+
+    e.preventDefault();
+
+    const name = document.getElementById('name').value;
+
+    const email = document.getElementById('email').value;
+
+    const password = document.getElementById('password').value;
+
+    try {
+
+        const userCredential =
+            await createUserWithEmailAndPassword(
+                auth,
+                email,
+                password
+            );
+
+        await sendEmailVerification(userCredential.user);
+
+        alert(
+            "Verification email sent! Please check your Gmail."
+        );
+
+    } catch (error) {
+
+        alert(error.message);
+
+        console.log(error);
+
+    }
+
+});
+
+</script>
