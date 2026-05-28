@@ -1,27 +1,21 @@
-FROM php:8.2-fpm
+FROM php:8.2-cli
 
 RUN apt-get update && apt-get install -y \
     git \
-    curl \
-    zip \
     unzip \
+    curl \
     libpq-dev \
-    libzip-dev \
-    nginx \
-    && docker-php-ext-install pdo pdo_pgsql pgsql zip
+    && docker-php-ext-install pdo pdo_pgsql pgsql
 
-WORKDIR /var/www
+WORKDIR /app
 
 COPY . .
 
-RUN curl -sS https://getcomposer.org/installer | php \
-    && mv composer.phar /usr/local/bin/composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 RUN composer install --no-dev --optimize-autoloader
 
-RUN php artisan config:cache
-RUN php artisan route:cache
-RUN php artisan view:cache
+RUN php artisan config:clear
 
 EXPOSE 10000
 
