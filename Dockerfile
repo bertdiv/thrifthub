@@ -5,15 +5,10 @@ RUN apt-get update && apt-get install -y \
     unzip \
     curl \
     libpq-dev \
-<<<<<<< HEAD
-    && docker-php-ext-install pdo pdo_pgsql pgsql
-=======
     nodejs \
     npm \
     && docker-php-ext-install pdo pdo_pgsql pgsql
 
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
->>>>>>> 16b2305 (Add Vite build step)
 
 WORKDIR /app
 
