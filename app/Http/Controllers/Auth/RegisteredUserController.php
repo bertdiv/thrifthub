@@ -15,7 +15,7 @@ use Illuminate\View\View;
 class RegisteredUserController extends Controller
 {
     /**
-     * Display registration form.
+     * Display the registration view.
      */
     public function create(): View
     {
@@ -23,7 +23,7 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * Handle registration.
+     * Handle an incoming registration request.
      */
     public function store(Request $request): RedirectResponse
     {
@@ -31,7 +31,7 @@ class RegisteredUserController extends Controller
 
             'name' => ['required', 'string', 'max:255'],
 
-            'email' => ['required', 'email', 'unique:users'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
 
             'contact_number' => ['required', 'string', 'max:20'],
 
@@ -45,7 +45,7 @@ class RegisteredUserController extends Controller
 
         ]);
 
-        // Create user immediately
+        // Create seller account
         $user = User::create([
 
             'name' => $request->name,
@@ -68,13 +68,13 @@ class RegisteredUserController extends Controller
 
         ]);
 
-        // Send Laravel email verification
+        // Send email verification link
         event(new Registered($user));
 
-        // Auto login
+        // Auto login user
         Auth::login($user);
 
-        // Redirect to verification notice
+        // Redirect to verification page
         return redirect()->route('verification.notice');
     }
 }
