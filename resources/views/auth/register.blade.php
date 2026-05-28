@@ -1,4 +1,3 @@
-```blade
 <x-guest-layout>
 
 <form id="registerForm" class="px-2 sm:px-0">
@@ -238,7 +237,7 @@ document.getElementById("registerForm")
         );
 
         alert(
-            "Verification email sent! Please check your Gmail."
+            "Verification email sent! Please check your Gmail inbox or Spam Folder."
         );
 
         // Redirect verification page
@@ -258,4 +257,3 @@ document.getElementById("registerForm")
 </script>
 
 </x-guest-layout>
-```

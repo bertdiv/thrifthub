@@ -1,25 +1,99 @@
+
 <x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-        {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}
+
+<div class="mb-4 text-sm text-gray-600">
+    Forgot your password?
+    Enter your email and Firebase will send
+    a reset link.
+</div>
+
+<form id="resetForm">
+
+    <div>
+
+        <x-input-label
+            for="email"
+            :value="__('Email')" />
+
+        <x-text-input
+            id="email"
+            class="block mt-1 w-full"
+            type="email"
+            name="email"
+            required />
+
     </div>
 
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    <div class="flex items-center justify-end mt-4">
 
-    <form method="POST" action="{{ route('password.email') }}">
-        @csrf
+        <x-primary-button>
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+            Send Reset Link
 
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
-                {{ __('Email Password Reset Link') }}
-            </x-primary-button>
-        </div>
-    </form>
+        </x-primary-button>
+
+    </div>
+
+</form>
+
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+    getAuth,
+    sendPasswordResetEmail
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+
+    apiKey: "AIzaSyC0NVxBhA7Lxq6ZgZNuRkLmhIZEQj7UzG0",
+
+    authDomain: "thrifthub-142be.firebaseapp.com",
+
+    projectId: "thrifthub-142be",
+
+    storageBucket: "thrifthub-142be.firebasestorage.app",
+
+    messagingSenderId: "32277704559",
+
+    appId: "1:32277704559:web:b704953c491d72a3cd429a"
+
+};
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+
+document.getElementById('resetForm')
+.addEventListener('submit', async (e) => {
+
+    e.preventDefault();
+
+    const email =
+        document.getElementById('email').value;
+
+    try {
+
+        await sendPasswordResetEmail(
+            auth,
+            email
+        );
+
+        alert(
+            'Password reset email sent!'
+        );
+
+    } catch (error) {
+
+        alert(error.message);
+
+    }
+
+});
+
+</script>
+
 </x-guest-layout>
