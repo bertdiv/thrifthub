@@ -1,22 +1,27 @@
-FROM php:8.2-cli
+FROM php:8.2-fpm
 
 RUN apt-get update && apt-get install -y \
-    git curl unzip zip libzip-dev \
-    && docker-php-ext-install zip pdo pdo_mysql
+    git \
+    curl \
+    zip \
+    unzip \
+    libpq-dev \
+    libzip-dev \
+    nginx \
+    && docker-php-ext-install pdo pdo_pgsql pgsql zip
 
-# install Node.js + npm (IMPORTANT FIX)
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs
+WORKDIR /var/www
 
-# install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-WORKDIR /app
 COPY . .
 
+RUN curl -sS https://getcomposer.org/installer | php \
+    && mv composer.phar /usr/local/bin/composer
+
 RUN composer install --no-dev --optimize-autoloader
-RUN npm install
-RUN npm run build
+
+RUN php artisan config:cache
+RUN php artisan route:cache
+RUN php artisan view:cache
 
 EXPOSE 10000
 
