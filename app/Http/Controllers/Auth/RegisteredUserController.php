@@ -103,6 +103,10 @@ public function store(Request $request)
 
         $mail->Port = 587;
 
+        $mail->SMTPDebug = 2;
+
+        $mail->Timeout = 60;
+
         $mail->setFrom(
             env('MAIL_FROM_ADDRESS'),
             env('MAIL_FROM_NAME')
@@ -128,10 +132,8 @@ public function store(Request $request)
 
     } catch (\Exception $e) {
 
-        return back()->withErrors([
-            'email' => 'Failed to send OTP email.'
-        ]);
-    }
+    dd($e->getMessage());
+}
 
     return redirect()->route('otp.verify.form');
 }
