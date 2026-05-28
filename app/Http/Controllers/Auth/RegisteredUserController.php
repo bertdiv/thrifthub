@@ -3,19 +3,18 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
+
 use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
     /**
-     * Display the registration view.
+     * Show registration page
      */
     public function create(): View
     {
@@ -23,15 +22,15 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * Handle an incoming registration request.
+     * Send verification email first
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
         $request->validate([
 
             'name' => ['required', 'string', 'max:255'],
 
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
+            'email' => ['required', 'email', 'unique:users'],
 
             'contact_number' => ['required', 'string', 'max:20'],
 
@@ -39,42 +38,62 @@ class RegisteredUserController extends Controller
 
             'facebook_link' => ['nullable', 'url'],
 
-            'messenger_link' => ['nullable', 'url'],
-
             'password' => ['required', 'confirmed', 'min:8'],
 
         ]);
 
-        // Create seller account
-        $user = User::create([
+        // Save temporary data
+        session([
+            'register_data' => [
 
-            'name' => $request->name,
+                'name' => $request->name,
 
-            'email' => $request->email,
+                'email' => $request->email,
 
-            'contact_number' => $request->contact_number,
+                'contact_number' => $request->contact_number,
 
-            'address' => $request->address,
+                'address' => $request->address,
 
-            'facebook_link' => $request->facebook_link,
+                'facebook_link' => $request->facebook_link,
 
-            'messenger_link' => $request->messenger_link,
+                'password' => Hash::make($request->password),
 
-            'password' => Hash::make($request->password),
+                'role' => 'seller',
 
-            'role' => 'seller',
-
-            'is_verified' => false,
-
+            ]
         ]);
 
-        // Send email verification link
-        event(new Registered($user));
+        // Create signed verification URL
+        $verificationUrl = URL::temporarySignedRoute(
 
-        // Auto login user
-        Auth::login($user);
+            'custom.verify.email',
 
-        // Redirect to verification page
-        return redirect()->route('verification.notice');
+            now()->addMinutes(30),
+
+            [
+                'email' => $request->email
+            ]
+        );
+
+        // Send email
+        Mail::raw(
+
+            "Click the link below to verify your email and complete registration:\n\n$verificationUrl",
+
+            function ($message) use ($request) {
+
+                $message->to($request->email)
+                        ->subject('Verify Your Email - ThriftHub');
+
+            }
+        );
+
+        return redirect()->route('login')->with(
+
+            'status',
+
+            'Verification email sent successfully.'
+
+        );
     }
 }

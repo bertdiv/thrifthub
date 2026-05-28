@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -11,9 +12,6 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
-    /**
-     * Mass assignable fields
-     */
     protected $fillable = [
 
         'name',
@@ -21,17 +19,12 @@ class User extends Authenticatable implements MustVerifyEmail
         'contact_number',
         'address',
         'facebook_link',
-        'messenger_link',
         'password',
         'role',
         'is_verified',
-        'email_verified_at',
 
     ];
 
-    /**
-     * Hidden fields
-     */
     protected $hidden = [
 
         'password',
@@ -39,16 +32,27 @@ class User extends Authenticatable implements MustVerifyEmail
 
     ];
 
-    /**
-     * Cast attributes
-     */
-    protected $casts = [
+    protected function casts(): array
+    {
+        return [
 
-        'email_verified_at' => 'datetime',
+            'email_verified_at' => 'datetime',
 
-        'password' => 'hashed',
+            'password' => 'hashed',
 
-        'is_verified' => 'boolean',
+            'is_verified' => 'boolean',
 
-    ];
+        ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }

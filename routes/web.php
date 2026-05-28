@@ -27,6 +27,20 @@ Route::get('/', function () {
 | DASHBOARD REDIRECT
 |--------------------------------------------------------------------------
 */
+use Illuminate\Support\Facades\Mail;
+
+Route::get('/test-email', function () {
+
+    Mail::raw('Test Email From ThriftHub', function ($message) {
+
+        $message->to('badugasjohn@gmail.com')
+                ->subject('Test Email');
+
+    });
+
+    return 'Email Sent';
+
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
