@@ -6,34 +6,40 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
-{
-    Schema::create('seller_profiles', function (Blueprint $table) {
-        $table->id();
+    {
+        // SKIP IF TABLE EXISTS
+        if (Schema::hasTable('seller_profiles')) {
+            return;
+        }
 
-        $table->foreignId('user_id')
-              ->constrained()
-              ->onDelete('cascade');
+        Schema::create('seller_profiles', function (Blueprint $table) {
 
-        $table->string('contact_number');
-        $table->text('address');
+            $table->id();
 
-        $table->string('facebook')->nullable();
-        $table->string('instagram')->nullable();
-        $table->string('messenger_link')->nullable();
+            $table->unsignedBigInteger('user_id');
 
-        $table->boolean('profile_completed')->default(false);
+            $table->string('shop_name')
+                  ->nullable();
 
-        $table->timestamps();
-    });
-}
+            $table->text('bio')
+                  ->nullable();
 
-    /**
-     * Reverse the migrations.
-     */
+            $table->timestamps();
+
+        });
+
+        // ADD FOREIGN KEY SEPARATELY
+        Schema::table('seller_profiles', function (Blueprint $table) {
+
+            $table->foreign('user_id')
+                  ->references('id')
+                  ->on('users')
+                  ->onDelete('cascade');
+
+        });
+    }
+
     public function down(): void
     {
         Schema::dropIfExists('seller_profiles');

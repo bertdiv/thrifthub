@@ -150,8 +150,10 @@ import {
     createUserWithEmailAndPassword,
     sendEmailVerification
 
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+// FIREBASE CONFIG
 const firebaseConfig = {
 
     apiKey: "AIzaSyC0NVxBhA7Lxq6ZgZNuRkLmhIZEQj7UzG0",
@@ -160,7 +162,7 @@ const firebaseConfig = {
 
     projectId: "thrifthub-142be",
 
-    storageBucket: "thrifthub-142be.firebasestorage.app",
+    storageBucket: "thrifthub-142be.appspot.com",
 
     messagingSenderId: "32277704559",
 
@@ -168,87 +170,185 @@ const firebaseConfig = {
 
 };
 
+// INITIALIZE FIREBASE
 const app = initializeApp(firebaseConfig);
 
 const auth = getAuth(app);
 
+// SHOW/HIDE PASSWORD
 window.togglePasswords = function () {
 
-    const password = document.getElementById('password');
+    const password =
+        document.getElementById('password');
 
-    const confirm = document.getElementById('password_confirmation');
+    const confirm =
+        document.getElementById(
+            'password_confirmation'
+        );
 
-    const type = password.type === 'password'
+    const type =
+        password.type === 'password'
         ? 'text'
         : 'password';
 
     password.type = type;
 
     confirm.type = type;
+
 };
 
+// REGISTER FORM
 document.getElementById("registerForm")
 .addEventListener("submit", async function (e) {
 
     e.preventDefault();
 
-    const name = document.getElementById('name').value;
+    // GET VALUES
+    const name =
+        document.getElementById('name').value;
 
-    const email = document.getElementById('email').value;
+    const email =
+        document.getElementById('email').value;
 
     const contact_number =
-        document.getElementById('contact_number').value;
+        document.getElementById(
+            'contact_number'
+        ).value;
 
     const address =
         document.getElementById('address').value;
 
     const facebook_link =
-        document.getElementById('facebook_link').value;
+        document.getElementById(
+            'facebook_link'
+        ).value;
 
     const password =
         document.getElementById('password').value;
 
+    const password_confirmation =
+        document.getElementById(
+            'password_confirmation'
+        ).value;
+
+    // CHECK PASSWORD MATCH
+    if (password !== password_confirmation) {
+
+        alert("Passwords do not match.");
+
+        return;
+
+    }
+
     try {
 
-        // Save temporarily
-        localStorage.setItem('name', name);
-
-        localStorage.setItem('email', email);
-
-        localStorage.setItem('contact_number', contact_number);
-
-        localStorage.setItem('address', address);
-
-        localStorage.setItem('facebook_link', facebook_link);
-
-        localStorage.setItem('password', password);
-
-        // Create Firebase account
+        // CREATE FIREBASE ACCOUNT
         const userCredential =
             await createUserWithEmailAndPassword(
+
                 auth,
                 email,
                 password
+
             );
 
-        // Send verification email
-        await sendEmailVerification(
-            userCredential.user
+        const user = userCredential.user;
+
+        // SEND EMAIL VERIFICATION
+        await sendEmailVerification(user);
+
+        // SAVE USER TO LARAVEL DATABASE
+        const response = await fetch(
+            '/save-user',
+            {
+
+                method: 'POST',
+
+                headers: {
+
+                    'Content-Type':
+                        'application/json',
+
+                    'X-CSRF-TOKEN':
+                        document.querySelector(
+                            'meta[name="csrf-token"]'
+                        ).content
+
+                },
+
+                body: JSON.stringify({
+
+                    name: name,
+
+                    email: email,
+
+                    contact_number: contact_number,
+
+                    address: address,
+
+                    facebook_link: facebook_link,
+
+                    firebase_uid: user.uid,
+
+                    role: 'seller'
+
+                })
+
+            }
         );
 
+        const result = await response.json();
+
+        if (!result.success) {
+
+            throw new Error(
+                'Failed to save user.'
+            );
+
+        }
+
+        // SUCCESS
         alert(
             "Verification email sent! Please check your Gmail inbox or Spam Folder."
         );
 
-        // Redirect verification page
+        // REDIRECT
         window.location.href =
             "/firebase-verified";
 
     } catch (error) {
 
-        alert(error.message);
+        console.error(error);
 
-        console.log(error);
+        let message = '';
+
+        switch (error.code) {
+
+            case 'auth/email-already-in-use':
+
+                message =
+                    'Email already registered.';
+                break;
+
+            case 'auth/invalid-email':
+
+                message =
+                    'Invalid email address.';
+                break;
+
+            case 'auth/weak-password':
+
+                message =
+                    'Password should be at least 6 characters.';
+                break;
+
+            default:
+
+                message = error.message;
+
+        }
+
+        alert(message);
 
     }
 

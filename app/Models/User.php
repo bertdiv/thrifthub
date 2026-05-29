@@ -6,24 +6,23 @@ use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
     protected $fillable = [
 
-        'name',
-        'email',
-        'contact_number',
-        'address',
-        'facebook_link',
-        'password',
-        'role',
-        'is_verified',
+    'name',
+    'email',
+    'firebase_uid',
+    'contact_number',
+    'address',
+    'facebook_link',
+    'role',
+    'password'
 
-    ];
+];
 
     protected $hidden = [
 

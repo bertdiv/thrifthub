@@ -6,20 +6,38 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
-{
-    Schema::table('products', function (Blueprint $table) {
-        $table->text('rejection_reason')->nullable();
-    });
-}
+    {
+        Schema::table('products', function (Blueprint $table) {
 
-public function down(): void
-{
-    Schema::table('products', function (Blueprint $table) {
-        $table->dropColumn('rejection_reason');
-    });
-}
+            if (!Schema::hasColumn(
+                'products',
+                'rejection_reason'
+            )) {
+
+                $table->text('rejection_reason')
+                      ->nullable();
+
+            }
+
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('products', function (Blueprint $table) {
+
+            if (Schema::hasColumn(
+                'products',
+                'rejection_reason'
+            )) {
+
+                $table->dropColumn(
+                    'rejection_reason'
+                );
+
+            }
+
+        });
+    }
 };

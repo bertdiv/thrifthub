@@ -57,17 +57,30 @@ class SellerController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | SELLER DASHBOARD (FIXED ERROR)
+    | SELLER DASHBOARD
     |--------------------------------------------------------------------------
     */
 
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         $userId = Auth::id();
 
-        $products = Product::where('user_id', $userId)
-            ->latest()
-            ->get();
+        // GET FILTER STATUS
+        $status = $request->status ?? 'all';
+
+        // PRODUCT QUERY
+        $query = Product::where('user_id', $userId);
+
+        // FILTER BY STATUS
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        // GET PRODUCTS
+        $products = $query->latest()->get();
+
+        // COUNTS
+        $totalProducts = Product::where('user_id', $userId)->count();
 
         $pendingCount = Product::where('user_id', $userId)
             ->where('status', 'pending')
@@ -77,23 +90,44 @@ class SellerController extends Controller
             ->where('status', 'approved')
             ->count();
 
+        $rejectedCount = Product::where('user_id', $userId)
+            ->where('status', 'rejected')
+            ->count();
+
+        $soldCount = Product::where('user_id', $userId)
+            ->where('status', 'sold')
+            ->count();
+
         return view('seller.dashboard', compact(
             'products',
+            'status',
+            'totalProducts',
             'pendingCount',
-            'approvedCount'
+            'approvedCount',
+            'rejectedCount',
+            'soldCount'
         ));
     }
-public function destroy(Product $product)
-{
-    if ($product->user_id !== auth()->id()) {
-        abort(403);
+
+    /*
+    |--------------------------------------------------------------------------
+    | DELETE PRODUCT
+    |--------------------------------------------------------------------------
+    */
+
+    public function destroy(Product $product)
+    {
+        if ($product->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $product->delete();
+
+        return redirect()
+            ->route('seller.dashboard')
+            ->with('success', 'Product deleted successfully.');
     }
 
-    $product->delete();
-
-    return redirect()->route('seller.dashboard')
-        ->with('success', 'Product deleted successfully.');
-}
     /*
     |--------------------------------------------------------------------------
     | EDIT PRODUCT
@@ -102,7 +136,6 @@ public function destroy(Product $product)
 
     public function edit(Product $product)
     {
-        // security: only owner can edit
         if ($product->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
@@ -118,7 +151,6 @@ public function destroy(Product $product)
 
     public function update(Request $request, Product $product)
     {
-        // security check
         if ($product->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }

@@ -24,15 +24,25 @@
 
     </div>
 
-    <div class="flex items-center justify-end mt-4">
+    <!-- Actions -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-6 gap-3">
 
-        <x-primary-button>
+    <!-- Back to Home -->
+    <a href="/"
+       class="text-sm text-gray-500 hover:text-gray-700">
 
-            Send Reset Link
+        ← Back to Home
 
-        </x-primary-button>
+    </a>
 
-    </div>
+    <!-- Submit Button -->
+    <x-primary-button>
+
+        Send Reset Link
+
+    </x-primary-button>
+
+</div>
 
 </form>
 

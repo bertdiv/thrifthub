@@ -65,162 +65,174 @@
 
             </div>
 
-            <!-- PRODUCT LIST -->
-            <div class="bg-white shadow rounded-xl p-6">
+            <!-- PRODUCT SECTION -->
+<div class="bg-white shadow rounded-2xl overflow-hidden">
 
-                <h3 class="text-lg font-semibold mb-4 text-gray-800">
-                    My Products
-                </h3>
+    <!-- TABS -->
+    <div class="border-b flex overflow-x-auto">
 
-                <div class="space-y-4">
+        <a href="{{ route('seller.dashboard', ['status' => 'all']) }}"
+           class="px-6 py-4 text-sm font-medium
+           {{ request('status') == 'all' || !request('status')
+                ? 'border-b-2 border-blue-600 text-blue-600'
+                : 'text-gray-500 hover:text-blue-600' }}">
+            All
+        </a>
 
-                    @forelse(auth()->user()->products as $product)
+        <a href="{{ route('seller.dashboard', ['status' => 'pending']) }}"
+           class="px-6 py-4 text-sm font-medium
+           {{ request('status') == 'pending'
+                ? 'border-b-2 border-yellow-500 text-yellow-500'
+                : 'text-gray-500 hover:text-yellow-500' }}">
+            Pending
+        </a>
 
-                        <div
-                            class="flex flex-col md:flex-row md:justify-between md:items-center border rounded-xl p-4 hover:shadow transition bg-gray-50">
+        <a href="{{ route('seller.dashboard', ['status' => 'approved']) }}"
+           class="px-6 py-4 text-sm font-medium
+           {{ request('status') == 'approved'
+                ? 'border-b-2 border-green-600 text-green-600'
+                : 'text-gray-500 hover:text-green-600' }}">
+            Approved
+        </a>
 
-                            <!-- LEFT -->
-                            <div class="mb-3 md:mb-0">
+        <a href="{{ route('seller.dashboard', ['status' => 'rejected']) }}"
+           class="px-6 py-4 text-sm font-medium
+           {{ request('status') == 'rejected'
+                ? 'border-b-2 border-red-500 text-red-500'
+                : 'text-gray-500 hover:text-red-500' }}">
+            Rejected
+        </a>
 
-                                <!-- TITLE -->
-                                <h4 class="font-semibold text-gray-800 text-lg">
-                                    {{ $product->title }}
-                                </h4>
+        <a href="{{ route('seller.dashboard', ['status' => 'sold']) }}"
+           class="px-6 py-4 text-sm font-medium
+           {{ request('status') == 'sold'
+                ? 'border-b-2 border-blue-600 text-blue-600'
+                : 'text-gray-500 hover:text-blue-600' }}">
+            Sold
+        </a>
 
-                                <!-- DETAILS -->
-                                <p class="text-sm text-gray-500 mt-1">
-                                    ₱{{ number_format($product->price, 2) }}
-                                    • {{ $product->category }}
-                                    • {{ $product->condition }}
-                                </p>
+    </div>
 
-                                <!-- STATUS -->
-                                <span
-                                    class="inline-block mt-3 px-3 py-1 text-xs rounded-full font-medium
+    <!-- PRODUCTS -->
+    <div class="p-6 space-y-4">
 
-                                    @if($product->status == 'approved')
-                                        bg-green-100 text-green-700
+        @forelse($products as $product)
 
-                                    @elseif($product->status == 'pending')
-                                        bg-yellow-100 text-yellow-700
+            <div class="flex flex-col md:flex-row justify-between items-center border rounded-xl p-4 bg-gray-50 hover:shadow">
 
-                                    @elseif($product->status == 'sold')
-                                        bg-blue-100 text-blue-700
+                <!-- LEFT -->
+                <div class="w-full">
 
-                                    @else
-                                        bg-red-100 text-red-700
-                                    @endif">
+                    <h4 class="font-semibold text-lg text-gray-800">
+                        {{ $product->title }}
+                    </h4>
 
-                                    {{ ucfirst($product->status) }}
+                    <p class="text-sm text-gray-500 mt-1">
+                        ₱{{ number_format($product->price,2) }}
+                        • {{ $product->category }}
+                        • {{ $product->condition }}
+                    </p>
 
-                                </span>
+                    <!-- STATUS -->
+                    <span class="inline-block mt-3 px-3 py-1 text-xs rounded-full font-medium
 
-                            </div>
+                        @if($product->status == 'approved')
+                            bg-green-100 text-green-700
 
-                            <!-- RIGHT ACTIONS -->
-                            <div class="flex flex-wrap gap-2">
+                        @elseif($product->status == 'pending')
+                            bg-yellow-100 text-yellow-700
 
-                                <!-- SOLD PRODUCT -->
-                                @if($product->status == 'sold')
+                        @elseif($product->status == 'sold')
+                            bg-blue-100 text-blue-700
 
-                                    <!-- DELETE SOLD PRODUCT -->
-                                    <form method="POST"
-                                          action="{{ route('seller.products.destroy', $product->id) }}"
-                                          onsubmit="return confirm('Delete this sold product?');">
+                        @else
+                            bg-red-100 text-red-700
+                        @endif">
 
-                                        @csrf
-                                        @method('DELETE')
+                        {{ ucfirst($product->status) }}
 
-                                        <button
-                                            class="px-3 py-1 text-sm border border-red-500 text-red-500 rounded-lg hover:bg-red-50 transition">
-                                            Delete
-                                        </button>
-
-                                    </form>
-
-                                @else
-
-                                    <!-- EDIT BUTTON -->
-                                    <button
-                                        type="button"
-                                        @click="openEdit({
-                                            id: {{ $product->id }},
-                                            title: '{{ addslashes($product->title) }}',
-                                            price: '{{ $product->price }}',
-                                            category: '{{ addslashes($product->category) }}',
-                                            condition: '{{ addslashes($product->condition) }}'
-                                        })"
-                                        class="px-3 py-1 text-sm border rounded-lg hover:bg-gray-100 transition">
-                                        Edit
-                                    </button>
-
-                                    <!-- MARK SOLD -->
-                                    @if($product->status == 'approved')
-
-                                        <form method="POST"
-                                              action="{{ route('seller.products.sold', $product->id) }}">
-                                            @csrf
-
-                                            <button
-                                                class="px-3 py-1 text-sm border border-green-500 text-green-600 rounded-lg hover:bg-green-50 transition">
-                                                Mark Sold
-                                            </button>
-
-                                        </form>
-
-                                    @elseif($product->status == 'pending')
-
-                                        <!-- DISABLED BUTTON -->
-                                        <button
-                                            disabled
-                                            class="px-3 py-1 text-sm border border-gray-300 bg-gray-100 text-gray-400 rounded-lg cursor-not-allowed">
-                                            Waiting Approval
-                                        </button>
-
-                                    @endif
-
-                                    <!-- DELETE -->
-                                    <form method="POST"
-                                          action="{{ route('seller.products.destroy', $product->id) }}"
-                                          onsubmit="return confirm('Are you sure you want to delete this product?');">
-
-                                        @csrf
-                                        @method('DELETE')
-
-                                        <button
-                                            class="px-3 py-1 text-sm border border-red-500 text-red-500 rounded-lg hover:bg-red-50 transition">
-                                            Delete
-                                        </button>
-
-                                    </form>
-
-                                @endif
-
-                            </div>
-
-                        </div>
-
-                    @empty
-
-                        <div class="text-center py-10 text-gray-500">
-
-                            <p class="text-lg font-medium">
-                                No products yet
-                            </p>
-
-                            <p class="text-sm mt-1">
-                                Start selling now 🚀
-                            </p>
-
-                        </div>
-
-                    @endforelse
+                    </span>
 
                 </div>
 
+                <!-- ACTIONS -->
+<div class="flex items-center gap-2 mt-4 md:mt-0 whitespace-nowrap">
+
+    @if($product->status != 'sold')
+
+        <!-- EDIT -->
+        <!-- EDIT -->
+<button
+    type="button"
+    @click="openEdit({
+        id: {{ $product->id }},
+        title: '{{ addslashes($product->title) }}',
+        price: '{{ $product->price }}',
+        category: '{{ addslashes($product->category) }}',
+        condition: '{{ addslashes($product->condition) }}'
+    })"
+    class="px-3 py-2 text-xs bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+
+    Edit
+
+</button>
+
+    @endif
+
+    <!-- MARK SOLD -->
+    @if($product->status == 'approved')
+
+        <form method="POST"
+              action="{{ route('seller.products.sold', $product->id) }}">
+            @csrf
+
+            <!-- MARK SOLD -->
+<button
+    class="px-3 py-2 text-xs bg-green-10000 text-green rounded-lg hover:bg-green-700 transition shadow">
+
+    Mark Sold
+
+</button>
+
+        </form>
+
+    @endif
+
+    <!-- DELETE -->
+    <form method="POST"
+          action="{{ route('seller.products.destroy', $product->id) }}"
+          onsubmit="return confirm('Delete this product?')">
+
+        @csrf
+        @method('DELETE')
+
+        <!-- DELETE -->
+<button
+    class="px-3 py-2 text-xs bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow">
+
+    Delete
+
+</button>
+
+    </form>
+
+</div>
+
             </div>
 
-        </div>
+        @empty
+
+            <div class="text-center py-12 text-gray-500">
+
+                No products found.
+
+            </div>
+
+        @endforelse
+
+    </div>
+
+</div>
 
         <!-- ================= EDIT MODAL ================= -->
         <div x-cloak>

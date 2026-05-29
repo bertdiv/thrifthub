@@ -2,15 +2,15 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+
+use App\Models\User;
 
 use App\Http\Controllers\ProfileController;
-
 use App\Http\Controllers\Admin\AdminDashboardController;
-
 use App\Http\Controllers\ProductController;
-
 use App\Http\Controllers\SellerController;
-
 use App\Http\Controllers\Auth\RegisteredUserController;
 
 /*
@@ -27,7 +27,7 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| FIREBASE VERIFICATION
+| FIREBASE VERIFICATION PAGE
 |--------------------------------------------------------------------------
 */
 
@@ -36,10 +36,106 @@ Route::view(
     'auth.firebase-verified'
 );
 
+/*
+|--------------------------------------------------------------------------
+| FIREBASE REGISTER
+|--------------------------------------------------------------------------
+*/
+
 Route::post(
     '/firebase-register',
     [RegisteredUserController::class, 'firebaseRegister']
 );
+
+/*
+|--------------------------------------------------------------------------
+| SAVE FIREBASE USER TO DATABASE
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/save-user', function (Request $request) {
+
+    $existingUser = User::where(
+        'email',
+        $request->email
+    )->first();
+
+    if (!$existingUser) {
+
+        User::create([
+
+            'name' => $request->name,
+
+            'email' => $request->email,
+
+            'contact_number' =>
+                $request->contact_number,
+
+            'address' =>
+                $request->address,
+
+            'facebook_link' =>
+                $request->facebook_link,
+
+            'firebase_uid' =>
+                $request->firebase_uid,
+
+            'role' =>
+                $request->role,
+
+            // Optional only for Laravel compatibility
+            'password' =>
+                bcrypt($request->password)
+
+        ]);
+
+    }
+
+    return response()->json([
+
+        'success' => true
+
+    ]);
+
+});
+
+/*
+|--------------------------------------------------------------------------
+| FIREBASE LOGIN
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/firebase-login', function (Request $request) {
+
+    $user = User::where(
+        'email',
+        $request->email
+    )->first();
+
+    if (!$user) {
+
+        return response()->json([
+
+            'success' => false,
+
+            'message' => 'User not found.'
+
+        ]);
+
+    }
+
+    // LOGIN TO LARAVEL SESSION
+    Auth::login($user);
+
+    $request->session()->regenerate();
+
+    return response()->json([
+
+        'success' => true
+
+    ]);
+
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -50,14 +146,17 @@ Route::post(
 Route::get('/test-email', function () {
 
     Mail::raw(
+
         'Test Email From ThriftHub',
 
         function ($message) {
 
-            $message->to('badugasjohn@gmail.com')
-                    ->subject('Test Email');
+            $message->to(
+                'badugasjohn@gmail.com'
+            )->subject('Test Email');
 
         }
+
     );
 
     return 'Email Sent';
@@ -71,22 +170,24 @@ Route::get('/test-email', function () {
 */
 
 Route::middleware(['auth'])
-->group(function () {
 
-    Route::get('/dashboard', function () {
+    ->group(function () {
 
-        if (auth()->user()->role === 'admin') {
+        Route::get('/dashboard', function () {
+
+            if (auth()->user()->role === 'admin') {
+
+                return redirect()
+                    ->route('admin.dashboard');
+
+            }
 
             return redirect()
-                ->route('admin.dashboard');
-        }
+                ->route('seller.dashboard');
 
-        return redirect()
-            ->route('seller.dashboard');
+        })->name('dashboard');
 
-    })->name('dashboard');
-
-});
+    });
 
 /*
 |--------------------------------------------------------------------------
@@ -150,7 +251,7 @@ Route::middleware(['auth', 'admin'])
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth')
+Route::middleware(['auth'])
 
     ->group(function () {
 
